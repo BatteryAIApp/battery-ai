@@ -1,0 +1,3743 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Battery AI</title>
+
+<style>
+:root {
+  --bg: #000000;
+  --card: #111111;
+  --card-2: #171717;
+  --text: #ffffff;
+  --muted: #8e8e93;
+  --green: #34c759;
+  --yellow: #ffcc00;
+  --orange: #ff9500;
+  --red: #ff3b30;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, #151515 0%, #000 50%);
+  color: var(--text);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    Arial,
+    sans-serif;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 28px 18px 50px;
+}
+
+.header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.language-switch {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.language-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  margin-top: 18px;
+}
+
+.demo {
+  margin-top: 7px;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+}
+
+.card {
+  background: linear-gradient(180deg, #171717, #101010);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,0.04),
+    0 15px 40px rgba(0,0,0,0.25);
+}
+
+.card.main {
+  text-align: center;
+}
+
+.battery {
+  margin: 4px auto 14px;
+}
+
+.level {
+  width: 100%;
+  height: 14px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: #252525;
+  margin-top: 12px;
+}
+
+.level::after {
+  content: "";
+  display: block;
+  width: 87%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #34c759, #7ae582);
+  transition: width 0.5s ease;
+}
+
+.percent {
+  font-size: 92px;
+  font-weight: 800;
+  letter-spacing: -5px;
+  line-height: 0.95;
+  cursor: pointer;
+  user-select: none;
+}
+
+.battery-menu {
+  display: none;
+  margin-top: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+}
+
+.battery-menu button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 0;
+  background: #242424;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.device-check-button:active {
+  transform: scale(0.98);
+}
+
+.status {
+  margin-top: 18px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.description {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.label {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.number {
+  font-size: 29px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.row .label {
+  margin-bottom: 0;
+}
+
+.ai-score-card {
+  text-align: center;
+}
+
+.ai-title {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.score-ring {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring-bg {
+  fill: none;
+  stroke: #252525;
+  stroke-width: 14;
+}
+
+.score-ring-progress {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 14;
+    stroke-linecap: round;
+
+    stroke-dasharray: 477;
+    stroke-dashoffset: 477;
+
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+
+    filter:
+        drop-shadow(0 0 6px rgba(52, 199, 89, 0.45))
+        drop-shadow(0 0 14px rgba(52, 199, 89, 0.18));
+
+    transition: stroke-dashoffset 0.08s linear,
+                filter 0.3s ease;
+}
+
+.score-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.ai-score-number {
+  font-size: 58px;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+
+.ai-score-max {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.score-status {
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+.score-description {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.health {
+  width: 100%;
+  height: 8px;
+  margin-top: 16px;
+  background: #252525;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.health-fill {
+  width: 96%;
+  height: 100%;
+  background: var(--green);
+  border-radius: inherit;
+}
+
+.graph {
+  height: 120px;
+  margin-top: 16px;
+}
+
+.graph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.graph polyline {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* AI ANALYST */
+
+.ai-status {
+  margin: 8px 0 16px;
+  color: var(--green);
+  font-size: 15px;
+}
+
+.ai-text {
+  color: #d7d7d7;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.optimize-button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px 20px;
+  border: 0;
+  border-radius: 17px;
+  color: white;
+  background: linear-gradient(135deg, #34c759, #28a745);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.optimize-button:active {
+  transform: scale(0.98);
+}
+.ai-scan-log {
+    display: none;
+    margin: 20px 0;
+}
+
+.scan-step {
+    display: none;
+    margin: 12px 0;
+    font-size: 15px;
+    color: #a0a0a0;
+}
+
+.scan-step.active {
+    display: block;
+    color: #ffffff;
+}
+
+.scan-step.done {
+    color: #52c75a;
+}
+
+.scan-result {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    background: rgba(82, 199, 90, 0.1);
+    color: #52c75a;
+    font-weight: bold;
+}.scan {
+  display: none;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.result {
+  display: none;
+  margin-top: 12px;
+  color: var(--green);
+  font-size: 16px;
+  font-weight: 700;
+}
+.ai-power-analysis {
+    display: none;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.ai-power-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.ai-badge {
+    background: rgba(82, 199, 90, 0.2);
+    color: #52c75a;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.ai-power-main {
+    margin-top: 16px;
+}
+
+.ai-power-main b {
+    display: block;
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.ai-power-main p {
+    margin: 0;
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.ai-power-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 14px;
+}
+.battery-forecast {
+    display: none;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+}
+
+.forecast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.forecast-badge {
+    color: #52c75a;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: rgba(82, 199, 90, 0.15);
+}
+
+.forecast-main {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #a0a0a0;
+}
+
+.forecast-main b {
+    font-size: 28px;
+    color: #52c75a;
+}
+
+.battery-forecast p {
+    margin: 12px 0 0;
+    color: #b5b5b5;
+    font-size: 14px;
+}
+.recommendations {
+  display: block;
+  margin-top: 24px;
+}
+
+.recommendation-title {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.recommendation-item {
+  display: flex;
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid var(--border);
+}
+
+.recommendation-item span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.recommendation-item div {
+  flex: 1;
+}
+
+.recommendation-item b {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.recommendation-item small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+@media (max-width: 500px) {
+  .percent {
+    font-size: 80px;
+  }
+
+  .title {
+    font-size: 31px;
+  }
+}
+#optimizeButton {
+    width: 100%;
+    margin-top: 18px;
+    padding: 16px 20px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,114,255,0.25);
+    transition: 0.25s ease;
+}
+
+#optimizeButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgba(0,114,255,0.4);
+}
+
+#optimizeButton:active {
+    transform: scale(0.98);
+}
+.battery-details {
+    margin-top: 18px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 15px;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row span {
+    color: #aab2c8;
+    font-size: 15px;
+}
+
+.detail-row b {
+    color: #ffffff;
+    text-align: right;
+    font-size: 15px;
+}
+.result,
+.recommendations {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.result.show,
+.recommendations.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* ===== BATTERY HISTORY GRAPH ===== */
+
+.battery-history {
+    display: none;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.history-badge {
+    color: #52c75a;
+    font-size: 12px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: rgba(82, 199, 90, 0.15);
+}
+
+.history-main {
+    margin-top: 18px;
+}
+
+.history-current {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.history-current span {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.history-current b {
+    font-size: 22px;
+    color: #52c75a;
+}
+
+/* график */
+
+.history-chart {
+    position: relative;
+    height: 150px;
+    margin: 0 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+/* сетка */
+
+.history-chart::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(255,255,255,0.08) 1px,
+            transparent 1px
+        );
+    background-size: 100% 37px;
+    pointer-events: none;
+}
+
+/* линия */
+
+.chart-line {
+    position: absolute;
+    left: 3%;
+    right: 3%;
+    top: 22px;
+    height: 100px;
+    border-top: 4px solid #52c75a;
+    transform: rotate(10deg);
+    transform-origin: left center;
+    filter: drop-shadow(0 0 7px rgba(82,199,90,0.7));
+}
+
+/* точки */
+
+.chart-point {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #52c75a;
+    box-shadow: 0 0 0 5px rgba(82,199,90,0.12),
+                0 0 12px rgba(82,199,90,0.8);
+    z-index: 2;
+    font-size: 11px;
+    color: #ffffff;
+    padding-top: 16px;
+    width: auto;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+}
+
+.chart-point::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #52c75a;
+    box-shadow: 0 0 10px rgba(82,199,90,0.8);
+    transform: translateX(-50%);
+}
+
+.chart-point.p1 {
+    left: 3%;
+    top: 17px;
+}
+
+.chart-point.p2 {
+    left: 26%;
+    top: 38px;
+}
+
+.chart-point.p3 {
+    left: 49%;
+    top: 62px;
+}
+
+.chart-point.p4 {
+    left: 72%;
+    top: 86px;
+}
+
+.chart-point.p5 {
+    right: 3%;
+    top: 108px;
+}
+
+/* прогноз */
+
+.history-forecast {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.history-forecast span {
+    color: #a0a0a0;
+    font-size: 13px;
+}
+
+.history-forecast b {
+    color: #52c75a;
+    font-size: 14px;
+    text-align: right;
+}
+/* ===== BEAUTIFUL BATTERY HISTORY ===== */
+
+.battery-history {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.history-badge {
+    color: #52c75a;
+    background: rgba(82, 199, 90, 0.15);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.history-main {
+    margin-top: 18px;
+}
+
+.history-current {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.history-current b {
+    color: #52c75a;
+    font-size: 28px;
+}
+
+/* график */
+
+.history-chart {
+    position: relative;
+    height: 180px;
+    margin-top: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+/* горизонтальные линии */
+
+.history-chart::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(255,255,255,0.08) 1px,
+            transparent 1px
+        );
+    background-size: 100% 45px;
+}
+
+/* линия */
+
+.chart-line {
+    position: absolute;
+    left: 5%;
+    width: 90%;
+    top: 25px;
+    height: 3px;
+
+    background: #52c75a;
+    border-radius: 10px;
+
+    transform: rotate(15deg);
+    transform-origin: left center;
+
+    box-shadow:
+        0 0 8px rgba(82,199,90,0.6),
+        0 0 18px rgba(82,199,90,0.25);
+}
+/* точки */
+
+.chart-point {
+    position: absolute;
+    z-index: 2;
+
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+    background: #52c75a;
+
+    box-shadow:
+        0 0 0 5px rgba(82,199,90,0.12),
+        0 0 12px rgba(82,199,90,0.7);
+
+    font-size: 12px;
+    font-weight: 600;
+    color: #d8d8d8;
+
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+}
+/* расположение точек */
+
+.chart-point.p1 {
+    left: 5%;
+    top: 25px;
+}
+
+.chart-point.p2 {
+    left: 27.5%;
+    top: 55px;
+}
+
+.chart-point.p3 {
+    left: 50%;
+    top: 88px;
+}
+
+.chart-point.p4 {
+    left: 72.5%;
+    top: 120px;
+}
+
+.chart-point.p5 {
+    left: 95%;
+    top: 153px;
+}
+
+/* прогноз */
+
+.history-forecast {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 14px;
+}
+
+.history-forecast span {
+    color: #b5b5b5;
+}
+
+.history-forecast b {
+    color: #52c75a;
+    text-align: right;
+}
+.battery-svg-chart {
+    width: 100%;
+    height: 190px;
+    display: block;
+    margin-top: 15px;
+    overflow: visible;
+}
+
+.battery-svg-chart line {
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 1;
+}
+
+.battery-history-line {
+    fill: none;
+    stroke: #52c75a;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 7px rgba(82,199,90,0.7));
+}
+
+.battery-history-point {
+    fill: #52c75a;
+    stroke: rgba(82,199,90,0.2);
+    stroke-width: 8;
+    filter: drop-shadow(0 0 6px rgba(82,199,90,0.7));
+}
+
+.battery-svg-chart text {
+    fill: #d8d8d8;
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+}
+/* ===== АНИМАЦИЯ ИСТОРИИ АККУМУЛЯТОРА ===== */
+
+.battery-history-line {
+    stroke-dasharray: 470;
+    stroke-dashoffset: 470;
+    transition: stroke-dashoffset 2s ease;
+}
+
+.battery-history-point {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.battery-history.animate .battery-history-line {
+    stroke-dashoffset: 0;
+}
+
+.battery-history.animate .battery-history-point {
+    opacity: 1;
+}
+
+.battery-history.animate .battery-history-point:nth-of-type(1) {
+    transition-delay: 0.1s;
+}
+
+.battery-history.animate .battery-history-point:nth-of-type(2) {
+    transition-delay: 0.5s;
+}
+
+.battery-history.animate .battery-history-point:nth-of-type(3) {
+    transition-delay: 0.9s;
+}
+
+.battery-history.animate .battery-history-point:nth-of-type(4) {
+    transition-delay: 1.3s;
+}
+
+.battery-history.animate .battery-history-point:nth-of-type(5) {
+    transition-delay: 1.7s;
+}
+/* ===== BATTERY CHALLENGE ===== */
+
+.battery-challenge {
+    display: none;
+    margin-top: 18px;
+    padding: 20px;
+    border-radius: 18px;
+    border: 1px solid rgba(82, 199, 90, 0.30);
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.10),
+        rgba(30, 144, 255, 0.06)
+    );
+}
+
+.battery-challenge.show {
+    display: block;
+}
+
+.challenge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.challenge-badge {
+    font-size: 12px;
+    color: #52c75a;
+    background: rgba(82, 199, 90, 0.18);
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.challenge-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 7px;
+}
+
+.challenge-text {
+    color: #a0a0a0;
+    font-size: 14px;
+    line-height: 1.45;
+    margin-bottom: 18px;
+}
+
+.challenge-progress {
+    width: 100%;
+    height: 9px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.challenge-progress-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 20px;
+    background: #52c75a;
+    transition: width 1.5s ease;
+}
+
+.battery-challenge.show .challenge-progress-fill {
+    width: 96%;
+}
+
+.challenge-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.challenge-reward {
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: #52c75a;
+    font-size: 14px;
+}
+/* ===== CHALLENGE BUTTON ===== */
+
+.challenge-button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 18px;
+
+    border: 1px solid rgba(82, 199, 90, 0.35);
+    border-radius: 14px;
+
+    background: rgba(82, 199, 90, 0.14);
+    color: #52c75a;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.challenge-button:hover {
+    background: rgba(82, 199, 90, 0.22);
+    transform: translateY(-1px);
+}
+
+.challenge-button:active {
+    transform: scale(0.98);
+}
+
+.challenge-active {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+
+    border-radius: 12px;
+    background: rgba(82, 199, 90, 0.10);
+
+    color: #52c75a;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+.challenge-timer {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+}
+.challenge-battery {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.challenge-battery-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #a0a0a0;
+}
+
+.challenge-battery-top b {
+    color: #52c75a;
+    font-size: 20px;
+}
+
+.challenge-battery-bar {
+    width: 100%;
+    height: 10px;
+    margin-top: 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.challenge-battery-fill {
+    width: 96%;
+    height: 100%;
+    border-radius: 20px;
+    background: #52c75a;
+    transition: width 1s linear;
+}
+
+.challenge-battery-goal {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    color: #777;
+    font-size: 12px;
+}
+.drain-detector {
+    display: none;
+    margin-top: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 190, 70, 0.35);
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 190, 70, 0.10),
+        rgba(30, 144, 255, 0.07)
+    );
+    color: white;
+}
+
+.drain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.drain-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(82, 199, 90, 0.18);
+    color: #52c75a;
+    font-size: 12px;
+}
+
+.drain-alert {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-top: 18px;
+    padding: 15px;
+    border-radius: 14px;
+    background: rgba(255, 190, 70, 0.08);
+}
+
+.drain-icon {
+    font-size: 26px;
+}
+
+.drain-alert b {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.drain-alert p {
+    margin: 0;
+    color: #a0a0a0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.drain-comparison {
+    margin-top: 18px;
+}
+
+.drain-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 45px;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    font-size: 13px;
+}
+
+.drain-row > span {
+    color: #a0a0a0;
+}
+
+.drain-row > b {
+    text-align: right;
+}
+
+.drain-bar {
+    height: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.drain-fill {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.drain-fill.normal {
+    width: 70%;
+    background: #52c75a;
+}
+
+.drain-fill.high {
+    width: 92%;
+    background: #ffb43b;
+}
+
+.drain-reason {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: #bdbdbd;
+    font-size: 14px;
+    line-height: 1.4;
+}
+.personal-mode {
+    display: none;
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.personal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.personal-badge {
+    color: #52c75a;
+    background: rgba(82, 199, 90, 0.15);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.personal-subtitle {
+    margin-top: 8px;
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.personal-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.personal-option {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    padding: 13px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 13px;
+    background: rgba(255,255,255,0.04);
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.personal-option:hover {
+    transform: translateY(-1px);
+}
+
+.personal-option.active {
+    border-color: rgba(82, 199, 90, 0.6);
+    background: rgba(82, 199, 90, 0.12);
+}
+
+.personal-icon {
+    font-size: 24px;
+}
+
+.personal-option b {
+    display: block;
+    font-size: 15px;
+}
+
+.personal-option small {
+    display: block;
+    margin-top: 3px;
+    color: #999;
+    font-size: 12px;
+}
+
+.personal-status {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.18);
+    color: #52c75a;
+    font-size: 13px;
+    text-align: center;
+}
+.personal-impact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    color: #888;
+    font-size: 12px;
+}
+
+.personal-impact b {
+    color: #52c75a;
+    font-size: 13px;
+}
+/* AI AUTO-OPTIMIZATION */
+
+.auto-optimization {
+    display: none;
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.auto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.auto-badge {
+    background: rgba(82, 199, 90, 0.2);
+    color: #52c75a;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.auto-subtitle {
+    margin-top: 8px;
+    color: #999;
+    font-size: 13px;
+}
+
+.auto-steps {
+    margin-top: 18px;
+}
+
+.auto-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    color: #999;
+    transition: 0.3s ease;
+}
+
+.auto-step-icon {
+    font-size: 19px;
+}
+
+.auto-step span:nth-child(2) {
+    flex: 1;
+    font-size: 14px;
+}
+
+.auto-step b {
+    color: #666;
+    font-size: 18px;
+}
+
+.auto-step.active {
+    background: rgba(30, 144, 255, 0.12);
+    color: white;
+}
+
+.auto-step.active b {
+    color: #30a9ff;
+}
+
+.auto-step.done {
+    background: rgba(82, 199, 90, 0.10);
+    color: white;
+}
+
+.auto-step.done b {
+    color: #52c75a;
+}
+
+.auto-result {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(82, 199, 90, 0.10);
+}
+
+.auto-result > span {
+    font-size: 22px;
+}
+
+.auto-result div {
+    flex: 1;
+}
+
+.auto-result b {
+    display: block;
+    font-size: 14px;
+}
+
+.auto-result small {
+    display: block;
+    margin-top: 3px;
+    color: #999;
+    font-size: 12px;
+}
+
+.auto-result strong {
+    color: #52c75a;
+    font-size: 15px;
+}
+
+.auto-button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid rgba(82, 199, 90, 0.35);
+    border-radius: 13px;
+    background: rgba(82, 199, 90, 0.12);
+    color: #52c75a;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.auto-button:hover {
+    background: rgba(82, 199, 90, 0.2);
+    transform: translateY(-1px);
+}
+
+.auto-button:active {
+    transform: scale(0.98);
+}
+/* DEVICE COMPATIBILITY */
+
+.device-compatibility {
+    display: none;
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid rgba(82, 199, 90, 0.3);
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(82, 199, 90, 0.12),
+        rgba(30, 144, 255, 0.08)
+    );
+    color: white;
+}
+
+.device-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.device-badge {
+    background: rgba(82, 199, 90, 0.2);
+    color: #52c75a;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.device-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+    padding: 15px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+}
+
+.device-icon {
+    font-size: 38px;
+}
+
+.device-info {
+    flex: 1;
+}
+
+.device-info b {
+    display: block;
+    font-size: 17px;
+}
+
+.device-info span {
+    display: block;
+    margin-top: 4px;
+    color: #999;
+    font-size: 12px;
+}
+
+.device-status {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(82,199,90,0.18);
+    color: #52c75a;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.device-checks {
+    margin-top: 14px;
+}
+
+.device-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    margin-top: 8px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+}
+
+.device-check span:nth-child(2) {
+    flex: 1;
+    color: #ccc;
+    font-size: 13px;
+}
+
+.device-check b {
+    color: #52c75a;
+    font-size: 16px;
+}
+
+.device-result {
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 12px;
+    background: rgba(82,199,90,0.10);
+    color: #52c75a;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+/* AI FINAL RESULT */
+
+.ai-final-result {
+    display: none;
+    margin-top: 18px;
+    padding: 24px;
+    border: 1px solid rgba(82, 199, 90, 0.35);
+    border-radius: 20px;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(82, 199, 90, 0.16),
+            transparent 45%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(82, 199, 90, 0.10),
+            rgba(30, 144, 255, 0.08)
+        );
+    color: white;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+
+.final-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.final-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(82,199,90,0.18);
+    color: #52c75a;
+    font-size: 12px;
+}
+
+.final-score {
+    margin-top: 22px;
+    line-height: 1;
+}
+
+.final-score-number {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -3px;
+}
+
+.final-score-max {
+    margin-left: 5px;
+    color: #777;
+    font-size: 20px;
+}
+
+.final-status {
+    margin-top: 10px;
+    color: #52c75a;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.final-description {
+    max-width: 420px;
+    margin: 10px auto 0;
+    color: #999;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.final-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.final-stat {
+    padding: 13px;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.045);
+    text-align: left;
+}
+
+.final-stat span {
+    display: block;
+    color: #888;
+    font-size: 11px;
+}
+
+.final-stat b {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+    color: white;
+}
+
+.final-bottom {
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: #52c75a;
+    font-size: 13px;
+    font-weight: 600;
+}
+.final-share-button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 15px 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,114,255,0.22);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.final-share-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,114,255,0.35);
+    filter: brightness(1.08);
+}
+
+.final-share-button:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 600px) {
+
+    body {
+        padding: 12px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    button {
+        max-width: 100%;
+    }
+
+    .battery-svg-chart {
+        width: 100%;
+        height: auto;
+    }
+
+    .history-main {
+        width: 100%;
+    }
+
+    .drain-row {
+        grid-template-columns: 95px 1fr 45px;
+        gap: 8px;
+    }
+
+    .personal-option {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .challenge-timer {
+        font-size: 28px;
+    }
+
+    .final-share-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+
+    <div class="language-switch">
+      <button onclick="setLanguage('en')">EN</button>
+      <button onclick="setLanguage('ru')">RU</button>
+    </div>
+
+    <div class="title">Battery AI</div>
+
+    <div class="demo">
+      Экспериментальный интеллект
+    </div>
+
+  </div>
+
+
+  <!-- MAIN BATTERY CARD -->
+
+  <div class="card main">
+
+    <div class="battery">
+
+      <div class="level"></div>
+
+    </div>
+
+    <div
+      class="percent"
+      onclick="toggleBatteryMenu()"
+    >
+      87%
+    </div>
+
+    <div
+      class="battery-menu"
+      id="batteryMenu"
+    >
+      <button onclick="setBattery(10)">10%</button>
+      <button onclick="setBattery(25)">25%</button>
+      <button onclick="setBattery(50)">50%</button>
+      <button onclick="setBattery(87)">87%</button>
+      <button onclick="setBattery(100)">100%</button>
+    </div>
+
+    <div class="status">
+      Excellent
+    </div>
+
+    <div class="description">
+      Battery performance is optimal.
+    </div>
+
+  </div>
+
+
+  <!-- REMAINING TIME -->
+
+  <div class="card">
+
+    <div class="label">
+      Оставшееся время
+    </div>
+
+    <div
+      class="number"
+      id="remainingTime"
+    >
+      8 h 24 min
+    </div>
+
+    <div
+      class="small"
+      id="usageText"
+    >
+      Based on your recent usage
+    </div>
+
+    <div
+      class="small"
+      id="aiConfidence"
+      style="margin-top:10px;"
+    >
+      AI confidence · 94%
+    </div>
+
+  </div>
+
+
+  <!-- BATTERY HEALTH -->
+
+  <div class="card">
+
+    <div class="row">
+
+      <div class="label">
+        Состояние аккумулятора
+      </div>
+
+      <div
+        class="small"
+        id="healthValue"
+      >
+        96%
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- AI SCORE -->
+
+  <div class="card ai-score-card">
+
+    <div class="ai-title">
+      AI Battery Score
+    </div>
+<div class="card battery-details">
+    <div class="detail-row">
+        <span>🔋 Заряда осталось</span>
+        <b>8 ч 24 мин</b>
+    </div>
+
+    <div class="detail-row">
+        <span>⚡ Оптимальная зарядка</span>
+        <b>80% до 18:30</b>
+    </div>
+
+    <div class="detail-row">
+        <span>🌡 Температура батареи</span>
+        <b>28°C</b>
+    </div>
+
+    <div class="detail-row">
+        <span>📉 Износ</span>
+        <b>Низкий</b>
+    </div>
+
+    <div class="detail-row">
+        <span>🔄 Циклы зарядки</span>
+        <b>214</b>
+    </div>
+</div>
+    <div class="score-ring">
+
+      <svg viewBox="0 0 180 180">
+
+        <circle
+          class="score-ring-bg"
+          cx="90"
+          cy="90"
+          r="76"
+        ></circle>
+
+        <circle
+          class="score-ring-progress"
+          id="scoreRing"
+          cx="90"
+          cy="90"
+          r="76"
+        ></circle>
+
+      </svg>
+
+      <div class="score-center">
+
+        <span
+          class="ai-score-number"
+          id="aiScore"
+        >
+          0
+        </span>
+
+        <span class="ai-score-max">
+          /100
+        </span>
+
+      </div>
+
+    </div>
+
+    <div
+      class="score-status"
+      id="scoreStatus"
+    >
+      🟢 Отличное состояние
+    </div>
+
+    <div class="score-description">
+      На основе состояния аккумулятора, нагрузки
+      <br>
+      и текущего режима использования
+    </div>
+
+    <div class="health">
+
+      <div
+        class="health-fill"
+        id="healthFill"
+      ></div>
+
+    </div>
+
+    <div
+      class="small"
+      id="maxCapacity"
+      style="margin-top:12px;"
+    >
+      Maximum Capacity · 96%
+    </div>
+
+    <div
+      class="small"
+      id="peakPerformance"
+      style="margin-top:8px;"
+    >
+      Peak Performance Capability · Normal
+    </div>
+
+  </div>
+
+
+  <!-- LAST 24 HOURS -->
+
+  <div class="card">
+
+    <div class="label">
+      Использование аккумулятора · Последние 24 часа
+    </div>
+
+    <div class="graph">
+
+      <svg
+        viewBox="0 0 400 100"
+        preserveAspectRatio="none"
+      >
+
+        <polyline
+          points="
+            0,12
+            35,15
+            70,20
+            105,28
+            140,35
+            175,40
+            210,49
+            245,57
+            280,63
+            315,72
+            350,80
+            400,91
+          "
+        ></polyline>
+
+      </svg>
+
+    </div>
+
+    <div class="times">
+
+      <span>18 ч</span>
+      <span>24 ч</span>
+      <span>6 ч</span>
+      <span>Сейчас</span>
+
+    </div>
+
+  </div>
+
+
+  <!-- AI ANALYST -->
+
+  <div class="card ai">
+
+    <div class="ai-title">
+      ✦ Анализ аккумулятора ИИ
+    </div>
+
+    <div
+      class="ai-status"
+      id="aiStatus"
+    >
+      ● Анализ завершён
+    </div>
+
+    <div
+      class="ai-text"
+      id="aiDescription"
+    >
+      Текущий режим использования оптимизирован.
+      Активность экрана сейчас является основным
+      источником расхода аккумулятора.
+    </div>
+
+    <button
+      id="optimizeButton"
+      onclick="startBatteryAI()"
+    >
+      Оптимизировать аккумулятор
+    </button>
+
+    <div
+      class="scan"
+      id="scan"
+    >
+      Анализ расхода аккумулятора...
+    </div>
+<div class="ai-scan-log" id="aiScanLog">
+    <div class="scan-step" id="step1">◌ Подключение к AI Battery Engine...</div>
+    <div class="scan-step" id="step2">◌ Анализ фоновой активности</div>
+    <div class="scan-step" id="step3">◌ Оценка температуры аккумулятора</div>
+    <div class="scan-step" id="step4">◌ Проверка режима зарядки</div>
+    <div class="scan-step" id="step5">◌ Оптимизация энергопотребления</div>
+    <div class="scan-result" id="scanResult">⚡ Найден потенциал экономии: +1 ч 18 мин</div>
+</div>    <div
+      class="result"
+      id="result"
+    >
+      Оптимизация завершена · +1 ч 18 мин
+    </div>
+<div class="battery-forecast">
+ <div class="forecast-header">
+        <span>🔮 Прогноз AI</span>
+        <span class="forecast-badge">AI</span>
+    </div>
+
+   <div class="forecast-main">
+    <span id="forecastLabel">При текущем использовании</span>
+    <b id="forecastTime">19:05</b>
+</div>
+
+<p id="forecastText">
+    Заряда хватит до <span id="forecastTimeBottom">19:05</span>
+</p>
+</div>
+<div class="battery-history">
+    <div class="history-header">
+        <span>📈 История аккумулятора</span>
+        <span class="history-badge">AI</span>
+    </div>
+
+    <div class="history-main">
+        <div class="history-current">
+            <span>Текущее состояние</span>
+            <b>96%</b>
+        </div>
+
+        <svg class="battery-svg-chart" viewBox="0 0 500 190" preserveAspectRatio="none">
+
+    <!-- сетка -->
+    <line x1="0" y1="25" x2="500" y2="25" />
+    <line x1="0" y1="70" x2="500" y2="70" />
+    <line x1="0" y1="115" x2="500" y2="115" />
+    <line x1="0" y1="160" x2="500" y2="160" />
+
+    <!-- линия истории -->
+    <polyline
+        class="battery-history-line"
+        points="25,30 135,55 250,85 365,120 475,150"
+    />
+
+    <!-- точки -->
+    <circle class="battery-history-point" cx="25" cy="30" r="6" />
+    <circle class="battery-history-point" cx="135" cy="55" r="6" />
+    <circle class="battery-history-point" cx="250" cy="85" r="6" />
+    <circle class="battery-history-point" cx="365" cy="120" r="6" />
+    <circle class="battery-history-point" cx="475" cy="150" r="6" />
+
+    <!-- подписи -->
+    <text x="25" y="52">100%</text>
+    <text x="135" y="77">99%</text>
+    <text x="250" y="107">98%</text>
+    <text x="365" y="142">97%</text>
+    <text x="475" y="173">96%</text>
+
+</svg>
+    </div>
+
+    <div class="history-forecast">
+        <span>🔮 Прогноз AI</span>
+        <b>≈ 91% через 12 месяцев</b>
+    </div>
+</div>   
+<!-- AI POWER ANALYSIS -->
+<div class="ai-power-analysis" id="aiPowerAnalysis">
+    <div class="ai-power-header">
+        <span>🧠 AI-анализ расхода</span>
+        <span class="ai-badge">AI</span>
+    </div>
+
+    <div class="ai-power-main">
+        <b>Telegram использовал на 18% больше энергии</b>
+        <p>Основная причина — повышенная фоновая активность.</p>
+    </div>
+
+    <div class="ai-power-detail">
+        <span>⚡ Расход выше обычного</span>
+        <b>+18%</b>
+    </div>
+</div>
+<div class="battery-challenge" id="batteryChallenge" style="display: none;">
+
+    <div class="challenge-header">
+        <span>⚔️ Battery Challenge</span>
+        <span class="challenge-badge">AI</span>
+    </div>
+
+    <div class="challenge-title">
+        Сохрани заряд выше 50%
+    </div>
+
+    <p class="challenge-text">
+        Попробуй продержаться 4 часа без интенсивного использования.
+    </p>
+
+    <div class="challenge-progress">
+        <div class="challenge-progress-fill"></div>
+    </div>
+
+    <div class="challenge-stats">
+        <span>🔋 Сейчас <b>96%</b></span>
+        <span>🎯 Цель <b>50%</b></span>
+    </div>
+
+    <div class="challenge-reward">
+        🏆 Потенциальная экономия: <b>+32 мин</b>
+    </div>
+
+
+<button class="challenge-button" id="challengeButton" onclick="startChallenge()">
+    ⚡ Начать челлендж
+</button>
+
+<div class="challenge-active" id="challengeActive">
+    🟢 Челлендж активен · AI отслеживает расход
+</div>
+<div class="challenge-timer" id="challengeTimer">
+    04:00:00
+</div>
+<div class="challenge-battery">
+    <div class="challenge-battery-top">
+        <span>🔋 Заряд</span>
+        <b id="challengeBatteryPercent">96%</b>
+    </div>
+</div>
+    <div class="challenge-battery-bar">
+        <div class="challenge-battery-fill" id="challengeBatteryFill"></div>
+    </div>
+
+    <div class="challenge-battery-goal">
+        <span>Сейчас</span>
+        <span>🎯 Цель: 50%</span>
+    </div>
+</div>
+</div>
+<div class="drain-detector" id="drainDetector">
+
+    <div class="drain-header">
+        <span>🕵️ Необычный расход</span>
+        <span class="drain-badge">AI</span>
+    </div>
+
+    <div class="drain-alert">
+        <div class="drain-icon">⚠️</div>
+
+        <div>
+            <b>Обнаружена необычная активность</b>
+            <p>Telegram расходует больше энергии, чем обычно.</p>
+        </div>
+    </div>
+
+    <div class="drain-comparison">
+
+        <div class="drain-row">
+            <span>Обычный расход</span>
+            <div class="drain-bar">
+                <div class="drain-fill normal"></div>
+            </div>
+            <b>100%</b>
+        </div>
+
+        <div class="drain-row">
+            <span>Текущий расход</span>
+            <div class="drain-bar">
+                <div class="drain-fill high"></div>
+            </div>
+            <b>118%</b>
+        </div>
+
+    </div>
+
+    <div class="drain-reason">
+        💡 Основная причина: повышенная фоновая активность
+    </div>
+
+</div>
+<!-- PERSONAL MODE -->
+<div class="personal-mode" id="personalMode">
+
+    <div class="personal-header">
+        <span>🎯 Personal Mode AI</span>
+        <span class="personal-badge">AI</span>
+    </div>
+<!-- AI AUTO-OPTIMIZATION -->
+
+<div class="auto-optimization" id="autoOptimization">
+
+    <div class="auto-header">
+        <span>🤖 AI Auto-Optimization</span>
+        <span class="auto-badge">AI</span>
+    </div>
+
+    <div class="auto-subtitle">
+        AI автоматически оптимизирует аккумулятор
+    </div>
+
+    <div class="auto-steps">
+
+        <div class="auto-step" id="autoStep1">
+            <span class="auto-step-icon">⚡</span>
+            <span>Анализ фоновых процессов</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep2">
+            <span class="auto-step-icon">🌡️</span>
+            <span>Проверка температуры</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep3">
+            <span class="auto-step-icon">📱</span>
+            <span>Оптимизация приложений</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep4">
+            <span class="auto-step-icon">🔋</span>
+            <span>Настройка энергопотребления</span>
+            <b>○</b>
+        </div>
+
+    </div>
+
+    <div class="auto-result" id="autoResult">
+        <span>✅</span>
+        <div>
+            <b>Оптимизация завершена</b>
+            <small>Потенциальная экономия энергии</small>
+        </div>
+        <strong>+1 ч 42 мин</strong>
+    </div>
+
+    <button class="auto-button" id="autoButton" onclick="runAutoOptimization()">
+        ⚡ Запустить автооптимизацию
+    </button>
+
+</div>
+    <div class="personal-subtitle">
+        Выбери режим использования аккумулятора
+    </div>
+
+    <div class="personal-modes">
+
+        <button class="personal-option active" onclick="setPersonalMode('balance', this)">
+            <span class="personal-icon">💬</span>
+            <span>
+                <b>Обычный</b>
+                <small>Баланс производительности</small>
+            </span>
+        </button>
+
+        <button class="personal-option" onclick="setPersonalMode('gaming', this)">
+            <span class="personal-icon">🎮</span>
+            <span>
+                <b>Игры</b>
+                <small>Максимальная производительность</small>
+            </span>
+        </button>
+
+        <button class="personal-option" onclick="setPersonalMode('saving', this)">
+            <span class="personal-icon">🔋</span>
+            <span>
+                <b>Экономия</b>
+                <small>Максимальная автономность</small>
+            </span>
+        </button>
+
+    </div>
+
+    <div class="personal-status" id="personalStatus">
+        ⚡ AI использует сбалансированный режим
+    </div>
+<div class="personal-impact" id="personalImpact">
+    <span>AI-влияние на аккумулятор</span>
+    <b>⚡ Баланс</b>
+</div>
+</div>
+<!-- AI AUTO-OPTIMIZATION -->
+
+<div class="auto-optimization" id="autoOptimization">
+
+    <div class="auto-header">
+        <span>🤖 AI Auto-Optimization</span>
+        <span class="auto-badge">AI</span>
+    </div>
+
+    <div class="auto-subtitle">
+        AI автоматически оптимизирует аккумулятор
+    </div>
+
+    <div class="auto-steps">
+
+        <div class="auto-step" id="autoStep1">
+            <span class="auto-step-icon">⚡</span>
+            <span>Анализ фоновых процессов</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep2">
+            <span class="auto-step-icon">🌡️</span>
+            <span>Проверка температуры</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep3">
+            <span class="auto-step-icon">📱</span>
+            <span>Оптимизация приложений</span>
+            <b>○</b>
+        </div>
+
+        <div class="auto-step" id="autoStep4">
+            <span class="auto-step-icon">🔋</span>
+            <span>Настройка энергопотребления</span>
+            <b>○</b>
+        </div>
+
+    </div>
+
+    <div class="auto-result" id="autoResult">
+        <span>✅</span>
+        <div>
+            <b>Оптимизация завершена</b>
+            <small>Потенциальная экономия энергии</small>
+        </div>
+        <strong>+1 ч 42 мин</strong>
+    </div>
+
+    <button class="auto-button" id="autoButton" onclick="runAutoOptimization()">
+        ⚡ Запустить автооптимизацию
+    </button>
+
+</div>
+<!-- DEVICE COMPATIBILITY -->
+
+<div class="device-compatibility" id="deviceCompatibility">
+
+    <div class="device-header">
+        <span>📱 Совместимость устройства</span>
+        <span class="device-badge">AI</span>
+    </div>
+
+    <div class="device-main">
+
+        <div class="device-icon">
+            📱
+        </div>
+
+        <div class="device-info">
+            <b>iPhone 15 Pro</b>
+            <span>Battery AI обнаружил устройство</span>
+        </div>
+
+        <div class="device-status">
+            ✓
+        </div>
+
+    </div>
+
+    <div class="device-checks">
+
+        <div class="device-check">
+            <span>🔋</span>
+            <span>Battery AI Engine</span>
+            <b>✓</b>
+        </div>
+
+        <div class="device-check">
+            <span>🌡️</span>
+            <span>Temperature Monitoring</span>
+            <b>✓</b>
+        </div>
+
+        <div class="device-check">
+            <span>⚡</span>
+            <span>Smart Optimization</span>
+            <b>✓</b>
+        </div>
+
+        <div class="device-check">
+            <span>🧠</span>
+            <span>AI Diagnostics</span>
+            <b>✓</b>
+        </div>
+
+    </div>
+
+    <div class="device-result">
+        🟢 Устройство полностью совместимо с Battery AI
+    </div>
+
+</div>
+<!-- AI FINAL RESULT -->
+
+<div class="ai-final-result" id="aiFinalResult" style="display: none;">
+
+    <div class="final-header">
+        <span>✨ AI Результат</span>
+        <span class="final-badge">AI</span>
+    </div>
+
+    <div class="final-score">
+        <span class="final-score-number">94</span>
+        <span class="final-score-max">/100</span>
+    </div>
+
+    <div class="final-status">
+        🟢 Отличное состояние
+    </div>
+
+    <p class="final-description">
+        Аккумулятор работает оптимально. AI не обнаружил критических проблем.
+    </p>
+
+    <div class="final-stats">
+
+        <div class="final-stat">
+            <span>🔋 Состояние</span>
+            <b>96%</b>
+        </div>
+
+        <div class="final-stat">
+            <span>🌡️ Температура</span>
+            <b>28°C</b>
+        </div>
+
+        <div class="final-stat">
+            <span>⚡ Экономия</span>
+            <b>+1 ч 18 мин</b>
+        </div>
+
+        <div class="final-stat">
+            <span>📱 Устройство</span>
+            <b>iPhone 17 Pro</b>
+        </div>
+
+    </div>
+
+    <div class="final-bottom">
+        ✓ AI-анализ завершён
+    </div>
+<button class="final-share-button" onclick="shareBatteryReport()">
+    📤 Поделиться отчётом
+</button>
+</div>
+    <!-- RECOMMENDATIONS -->
+
+    <div class="recommendations" 
+id="recommendations" 
+style="display: none;">
+
+      <div class="recommendation-title">
+        Рекомендации ИИ
+      </div>
+
+
+      <div class="recommendation-item">
+
+        <span>🔋</span>
+
+        <div>
+
+          <b>
+            Аккумулятор в отличном состоянии
+          </b>
+
+          <small>
+            Максимальная ёмкость составляет 96%.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="recommendation-item">
+
+        <span>☀️</span>
+
+        <div>
+
+          <b>
+            Снизить яркость на 8%
+          </b>
+
+          <small>
+            Это поможет увеличить автономность устройства.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="recommendation-item">
+
+        <span>▣</span>
+
+        <div>
+
+          <b>
+            Оптимизировать активность экрана
+          </b>
+
+          <small>
+            Экран сейчас является основным источником расхода.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="recommendation-item">
+
+        <span>⌁</span>
+
+        <div>
+
+          <b>
+            Режим работы: оптимальный
+          </b>
+
+          <small>
+            Дополнительная оптимизация сейчас не требуется.
+          </small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* LANGUAGE */
+
+function setLanguage(lang) {
+
+  const isRu = lang === 'ru';
+
+  document.querySelector('.title').textContent =
+    isRu
+      ? 'ИИ аккумулятора'
+      : 'Battery AI';
+
+  document.querySelector('.demo').textContent =
+    isRu
+      ? 'ЭКСПЕРИМЕНТАЛЬНЫЙ ИНТЕЛЛЕКТ'
+      : 'EXPERIMENTAL DEMO';
+
+  document.querySelector('.status').textContent =
+    isRu
+      ? 'Отличное состояние'
+      : 'Excellent';
+
+  document.querySelector('.description').textContent =
+    isRu
+      ? 'Производительность аккумулятора оптимальна.'
+      : 'Battery performance is optimal.';
+
+  document.querySelector('.label').textContent =
+    isRu
+      ? 'Оставшееся время'
+      : 'Estimated remaining';
+
+  document.querySelector('.ai-title').textContent =
+    isRu
+      ? '✦ Анализ аккумулятора ИИ'
+      : 'AI Battery Analysis';
+
+  document.getElementById('aiStatus').textContent =
+    isRu
+      ? '● Анализ завершён'
+      : '● Analysis complete';
+
+  document.getElementById('aiDescription').textContent =
+    isRu
+      ? 'Текущий режим использования оптимизирован. Активность экрана сейчас является основным источником расхода аккумулятора.'
+      : 'Your current usage pattern is optimized. Screen activity is currently the main source of battery drain.';
+
+  document.getElementById('optimizeButton').textContent =
+    isRu
+      ? 'Оптимизировать аккумулятор'
+      : 'Optimize Battery';
+
+  document.querySelectorAll('.label')[1].textContent =
+    isRu
+      ? 'Состояние аккумулятора'
+      : 'Battery Health';
+
+  document.getElementById('usageText').textContent =
+    isRu
+      ? 'На основе недавнего использования'
+      : 'Based on your recent usage';
+
+  document.getElementById('aiConfidence').textContent =
+    isRu
+      ? 'Уверенность ИИ · 94%'
+      : 'AI confidence · 94%';
+
+  document.getElementById('maxCapacity').textContent =
+    isRu
+      ? 'Максимальная ёмкость · 96%'
+      : 'Maximum Capacity · 96%';
+
+  document.getElementById('peakPerformance').textContent =
+    isRu
+      ? 'Пиковая производительность · Норма'
+      : 'Peak Performance Capability · Normal';
+/* PERSONAL MODE */
+
+document.querySelector('.personal-header span').textContent =
+    isRu ? '🎯 Personal Mode AI' : '🎯 Personal Mode AI';
+
+document.querySelector('.personal-subtitle').textContent =
+    isRu
+    ? 'Выбери режим использования аккумулятора'
+    : 'Choose your battery usage mode';
+
+const personalOptions =
+    document.querySelectorAll('.personal-option');
+
+if (personalOptions.length >= 3) {
+
+    personalOptions[0].querySelector('b').textContent =
+        isRu ? 'Обычный' : 'Balanced';
+
+    personalOptions[0].querySelector('small').textContent =
+        isRu ? 'Баланс производительности' : 'Performance balance';
+
+    personalOptions[1].querySelector('b').textContent =
+        isRu ? 'Игры' : 'Gaming';
+
+    personalOptions[1].querySelector('small').textContent =
+        isRu ? 'Максимальная производительность' : 'Maximum performance';
+
+    personalOptions[2].querySelector('b').textContent =
+        isRu ? 'Экономия' : 'Power Saving';
+
+    personalOptions[2].querySelector('small').textContent =
+        isRu ? 'Максимальная автономность' : 'Maximum battery life';
+}
+
+document.querySelector('#personalImpact span').textContent =
+    isRu
+    ? 'AI-влияние на аккумулятор'
+    : 'AI impact on battery';
+
+
+/* AUTO OPTIMIZATION */
+
+document.querySelector('.auto-header span').textContent =
+    isRu
+    ? '🤖 Автооптимизация AI'
+    : '🤖 AI Auto-Optimization';
+
+document.querySelector('.auto-subtitle').textContent =
+    isRu
+    ? 'AI автоматически оптимизирует аккумулятор'
+    : 'AI automatically optimizes your battery';
+
+const autoSteps =
+    document.querySelectorAll('.auto-step');
+
+if (autoSteps.length >= 4) {
+
+    autoSteps[0].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Анализ фоновых процессов' : 'Background activity analysis';
+
+    autoSteps[1].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Проверка температуры' : 'Temperature check';
+
+    autoSteps[2].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Оптимизация приложений' : 'App optimization';
+
+    autoSteps[3].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Настройка энергопотребления' : 'Power consumption adjustment';
+}
+
+document.querySelector('#autoResult b').textContent =
+    isRu
+    ? 'Оптимизация завершена'
+    : 'Optimization complete';
+
+document.querySelector('#autoResult small').textContent =
+    isRu
+    ? 'Потенциальная экономия энергии'
+    : 'Potential energy savings';
+
+document.querySelector('#autoButton').textContent =
+    isRu
+    ? '⚡ Запустить автооптимизацию'
+    : '⚡ Start Auto-Optimization';
+
+
+/* DEVICE COMPATIBILITY */
+
+document.querySelector('.device-header span').textContent =
+    isRu
+    ? '📱 Совместимость устройства'
+    : '📱 Device Compatibility';
+
+document.querySelector('.device-info span').textContent =
+    isRu
+    ? 'Battery AI обнаружил устройство'
+    : 'Battery AI detected your device';
+
+const deviceChecks =
+    document.querySelectorAll('.device-check');
+
+if (deviceChecks.length >= 4) {
+
+    deviceChecks[0].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Движок Battery AI' : 'Battery AI Engine';
+
+    deviceChecks[1].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Контроль температуры' : 'Temperature Monitoring';
+
+    deviceChecks[2].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'Умная оптимизация' : 'Smart Optimization';
+
+    deviceChecks[3].querySelector('span:nth-child(2)').textContent =
+        isRu ? 'AI-диагностика' : 'AI Diagnostics';
+}
+
+document.querySelector('.device-result').textContent =
+    isRu
+    ? '🟢 Устройство полностью совместимо с Battery AI'
+    : '🟢 Device is fully compatible with Battery AI';
+}
+/* EXTRA TRANSLATIONS */
+
+document.querySelector('.drain-header span').textContent =
+    isRu ? '🕵️ Необычный расход' : '🕵️ Unusual Drain';
+
+document.querySelector('.drain-alert b').textContent =
+    isRu ? 'Обнаружена необычная активность' : 'Unusual activity detected';
+
+document.querySelector('.drain-alert p').textContent =
+    isRu
+        ? 'Telegram расходует больше энергии, чем обычно.'
+        : 'Telegram is using more energy than usual.';
+
+document.querySelectorAll('.drain-row span')[0].textContent =
+    isRu ? 'Обычный расход' : 'Normal usage';
+
+document.querySelectorAll('.drain-row span')[1].textContent =
+    isRu ? 'Текущий расход' : 'Current usage';
+
+document.querySelector('.drain-reason').textContent =
+    isRu
+        ? '💡 Основная причина: повышенная фоновая активность'
+        : '💡 Main reason: increased background activity';
+
+
+document.querySelector('.challenge-title').textContent =
+    isRu ? 'Сохрани заряд выше 50%' : 'Keep battery above 50%';
+
+document.querySelector('.challenge-text').textContent =
+    isRu
+        ? 'Попробуй продержаться 4 часа без интенсивного использования.'
+        : 'Try to last 4 hours without intensive usage.';
+
+document.querySelector('.challenge-reward').innerHTML =
+    isRu
+        ? '🏆 Потенциальная экономия: <b>+32 мин</b>'
+        : '🏆 Potential savings: <b>+32 min</b>';
+
+document.querySelector('.challenge-button').textContent =
+    isRu ? '⚡ Начать челлендж' : '⚡ Start Challenge';
+
+
+document.querySelector('.recommendations-title').textContent =
+    isRu ? 'РЕКОМЕНДАЦИИ ИИ' : 'AI RECOMMENDATIONS';
+
+
+document.querySelector('.final-share-button').textContent =
+    isRu ? '📤 Поделиться отчётом' : '📤 Share Report';
+
+/* BATTERY MENU */
+
+function toggleBatteryMenu() {
+
+  const menu =
+    document.getElementById('batteryMenu');
+
+  menu.style.display =
+    menu.style.display === 'none' || menu.style.display === ''
+      ? 'grid'
+      : 'none';
+
+}
+
+
+/* BATTERY VALUE */
+
+function setBattery(value) {
+
+  const percent =
+    document.querySelector('.percent');
+
+  const status =
+    document.querySelector('.status');
+
+  const description =
+    document.querySelector('.description');
+
+  const level =
+    document.querySelector('.level');
+
+  const result =
+    document.getElementById('result');
+
+  const aiScore =
+    document.getElementById('aiScore');
+
+  const scoreStatus =
+    document.getElementById('scoreStatus');
+
+  let score;
+  let statusText;
+
+  if (value >= 80) {
+
+    score = 94;
+    statusText = '🟢 Отличное состояние';
+
+  } else if (value >= 50) {
+
+    score = 82;
+    statusText = '🟢 Хорошее состояние';
+
+  } else if (value >= 25) {
+
+    score = 68;
+    statusText = '🟡 Требуется внимание';
+
+  } else {
+
+    score = 51;
+    statusText = '🟠 Низкий уровень';
+
+  }
+
+
+if (aiScore) {
+    aiScore.textContent = '0';
+
+    let currentScore = 0;
+
+    const scoreAnimation = setInterval(() => {
+        const step = Math.floor(Math.random() * 3) + 1;
+
+        currentScore += step;
+
+        if (currentScore >= score) {
+            currentScore = score;
+            clearInterval(scoreAnimation);
+        }
+
+        aiScore.textContent = currentScore;
+    }, 100);
+}
+  if (scoreStatus) {
+    scoreStatus.textContent = statusText;
+  }
+
+
+  if (value >= 80) {
+
+    percent.textContent = value + '%';
+    status.textContent = '● Отличное состояние';
+    description.textContent =
+      'Battery performance is optimal.';
+
+  } else if (value >= 50) {
+
+    percent.textContent = value + '%';
+    status.textContent = '● Хорошее состояние';
+    description.textContent =
+      'Аккумулятор работает стабильно.';
+
+  } else if (value >= 25) {
+
+    percent.textContent = value + '%';
+    status.textContent = '● Требуется внимание';
+    description.textContent =
+      'Рекомендуется включить оптимизацию.';
+
+  } else {
+
+    percent.textContent = value + '%';
+    status.textContent = '● Низкий уровень';
+    description.textContent =
+      'Подключите устройство к зарядке.';
+
+  }
+
+
+  if (value <= 20) {
+
+    level.style.background =
+      '#ff3b30';
+
+  } else if (value <= 40) {
+
+    level.style.background =
+      '#ff9500';
+
+  } else {
+
+    level.style.background =
+      '#34c759';
+
+  }
+
+
+  const remainingTime =
+    document.getElementById('remainingTime');
+
+
+  const times = {
+
+    10: '48 min',
+    25: '2 h 08 min',
+    50: '4 h 31 min',
+    87: '8 h 24 min',
+    100: '10 h 12 min'
+
+  };
+
+
+  remainingTime.textContent =
+    times[value] || '8 h 24 min';
+
+
+  const menu =
+    document.getElementById('batteryMenu');
+
+  if (menu) {
+    menu.style.display = 'none';
+  }
+
+
+  if (result) {
+
+    result.innerText =
+      'Оптимизация завершена · +1 ч 18 мин';
+
+  }
+
+}
+
+
+/* AI ANALYSIS */
+
+function startBatteryAI() {
+// RESET AI
+
+const resetElements = [
+    document.getElementById('aiPowerAnalysis'),
+    document.getElementById('drainDetector'),
+    document.getElementById('personalMode'),
+    document.getElementById('autoOptimization'),
+    document.getElementById('deviceCompatibility'),
+    document.querySelector('.battery-history'),
+    document.getElementById('batteryChallenge'),
+    document.getElementById('aiFinalResult'),
+];
+
+resetElements.forEach(element => {
+    if (element) {
+        element.style.display = 'none';
+        element.classList.remove('show', 'animate');
+    }
+});
+
+const autoResult = document.getElementById('autoResult');
+
+if (autoResult) {
+    autoResult.style.display = 'none';
+}
+
+clearInterval(window.challengeTimerInterval);
+clearTimeout(window.autoOptimizationTimeout);
+  const scan =
+    document.getElementById('scan');
+
+  const result =
+    document.getElementById('result');
+
+  const button =
+    document.getElementById('optimizeButton');
+
+  const status =
+    document.getElementById('aiStatus');
+
+  const targetScore =
+    94;
+
+  const score =
+    document.getElementById('aiScore');
+
+const scoreRing =
+    document.querySelector('.score-ring-progress');
+
+  const recommendations =
+    document.getElementById('recommendations');
+
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      'Анализ аккумулятора...';
+  }
+
+
+  if (scan) {
+    scan.style.display = 'block';
+    scan.textContent =
+      'Анализ расхода аккумулятора...';
+  }
+const scanSteps = [
+    '🔋 Проверка состояния аккумулятора...',
+    '⚡ Анализ циклов зарядки...',
+    '🌡 Проверка температуры...',
+    '📱 Анализ активности экрана...',
+    '🧠 ИИ оценивает энергопотребление...',
+    '⚙️ Оптимизация системных процессов...',
+    '✓ Анализ завершён'
+];
+
+let step = 0;
+
+const scanInterval = setInterval(() => {
+    if (step < scanSteps.length - 1) {
+        scan.textContent = scanSteps[step];
+        step++;
+    } else {
+        clearInterval(scanInterval);
+    }
+}, 450);
+const batteryHistory = document.querySelector('.battery-history');
+
+if (batteryHistory) {
+    batteryHistory.style.display = 'block';
+    batteryHistory.classList.remove('animate');
+
+    setTimeout(() => {
+        batteryHistory.classList.add('animate');
+    }, 100);
+}
+const batteryChallenge = document.getElementById('batteryChallenge');
+
+if (batteryChallenge) {
+    batteryChallenge.classList.remove('show');
+    batteryChallenge.style.display = 'none';
+
+    setTimeout(() => {
+        batteryChallenge.style.display = 'block';
+        batteryChallenge.classList.add('show');
+    }, 700);
+}
+  if (result) {
+    result.style.display = 'none';
+  }
+
+
+  if (recommendations) {
+    recommendations.style.display = 'none';
+  }
+
+
+  if (status) {
+    status.textContent =
+      '● ИИ анализирует аккумулятор...';
+  }
+if (recommendations) {
+    recommendations.style.display = 'none';
+}
+
+const aiScanLog = document.getElementById('aiScanLog');
+const steps = [
+    document.getElementById('step1'),
+    document.getElementById('step2'),
+    document.getElementById('step3'),
+    document.getElementById('step4'),
+    document.getElementById('step5')
+];
+const scanResult = document.getElementById('scanResult');
+
+if (aiScanLog) {
+    aiScanLog.style.display = 'block';
+
+    steps.forEach(step => {
+        if (step) {
+            step.classList.remove('active', 'done');
+        }
+    });
+
+    if (scanResult) {
+        scanResult.style.display = 'none';
+    }
+
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            if (!step) return;
+
+            step.classList.add('active');
+
+            setTimeout(() => {
+                step.classList.add('done');
+
+                if (index === steps.length - 1 && scanResult) {
+                    setTimeout(() => {
+                        scanResult.style.display = 'block';
+                    }, 300);
+                }
+            }, 500);
+
+        }, index * 850);
+    });
+}if (score) {
+    score.textContent = '0';
+
+    const circumference = 2 * Math.PI * 76;
+
+    if (scoreRing) {
+        scoreRing.style.strokeDasharray = circumference;
+        scoreRing.style.strokeDashoffset = circumference;
+    }
+
+    let currentScore = 0;
+
+    const scoreAnimation = setInterval(() => {
+        currentScore++;
+
+        if (currentScore >= targetScore) {
+            currentScore = targetScore;
+            clearInterval(scoreAnimation);
+        }
+
+        score.textContent = currentScore;
+
+        if (scoreRing) {
+            const progress = currentScore / 100;
+            scoreRing.style.strokeDashoffset =
+                circumference * (1 - progress);
+        }
+
+    }, 20);
+}
+setTimeout(function () {
+
+    if (scan) {
+      scan.style.display = 'none';
+    }
+const scanSteps = [
+    document.getElementById('step1'),
+    document.getElementById('step2'),
+    document.getElementById('step3'),
+    document.getElementById('step4'),
+    document.getElementById('step5')
+];
+
+scanSteps.forEach(step => {
+    if (step) {
+        step.classList.remove('active', 'done');
+    }
+});
+
+function runScanStep(index) {
+    if (index >= scanSteps.length) return;
+
+    const currentStep = scanSteps[index];
+
+    if (currentStep) {
+        currentStep.classList.add('active');
+    }
+
+    setTimeout(() => {
+        if (currentStep) {
+            currentStep.classList.remove('active');
+            currentStep.classList.add('done');
+        }
+
+        runScanStep(index + 1);
+    }, 600);
+}
+
+runScanStep(0);    if (status) {
+      status.textContent =
+        '● Анализ завершён';
+    }
+
+
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        'Оптимизировать аккумулятор';
+    }
+
+
+    if (result) {
+    result.classList.remove('show');
+    result.style.display = 'block';
+    result.innerText = 'Оптимизация завершена · +1 ч 18 мин';
+
+    requestAnimationFrame(() => {
+        result.classList.add('show');
+    });
+}
+const batteryForecast =
+    document.querySelector('.battery-forecast');
+
+if (batteryForecast) {
+    batteryForecast.style.display = 'block';
+}
+const forecastTime = document.getElementById('forecastTime');
+
+if (forecastTime) {
+    const baseTime = '19:05';
+    const [hours, minutes] = baseTime.split(':').map(Number);
+
+    let totalMinutes = hours * 60 + minutes;
+    totalMinutes += 78;
+
+    const newHours = Math.floor(totalMinutes / 60) % 24;
+    const newMinutes = totalMinutes % 60;
+
+    forecastTime.textContent =
+        `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+}if (recommendations) {
+    recommendations.classList.remove('show');
+    recommendations.style.display = 'block';
+
+    setTimeout(() => {
+        recommendations.classList.add('show');
+    }, 250);
+}
+const aiPowerAnalysis = document.getElementById('aiPowerAnalysis');
+
+if (aiPowerAnalysis) {
+    aiPowerAnalysis.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        aiPowerAnalysis.style.opacity = '1';
+        aiPowerAnalysis.style.transform = 'translateY(0)';
+    });
+} 
+const drainDetector = document.getElementById('drainDetector');
+
+if (drainDetector) {
+    drainDetector.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        drainDetector.style.opacity = '1';
+        drainDetector.style.transform = 'translateY(0)';
+    });
+}
+const personalMode = document.getElementById('personalMode');
+
+if (personalMode) {
+    personalMode.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        personalMode.style.opacity = '1';
+        personalMode.style.transform = 'translateY(0)';
+    });
+}
+const autoOptimization =
+    document.getElementById('autoOptimization');
+
+if (autoOptimization) {
+    autoOptimization.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        autoOptimization.style.opacity = '1';
+        autoOptimization.style.transform = 'translateY(0)';
+    });
+}
+setTimeout(() => {
+    runAutoOptimization();
+}, 1000);
+setTimeout(() => {
+
+    const aiFinalResult =
+        document.getElementById('aiFinalResult');
+
+    if (!aiFinalResult) return;
+
+    aiFinalResult.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        aiFinalResult.style.opacity = '1';
+        aiFinalResult.style.transform = 'translateY(0)';
+    });
+
+    const scoreNumber =
+        aiFinalResult.querySelector('.final-score-number');
+
+    if (scoreNumber) {
+
+        let currentScore = 0;
+        const targetScore = 94;
+
+        scoreNumber.textContent = '0';
+
+        const finalScoreAnimation = setInterval(() => {
+
+            currentScore++;
+
+            if (currentScore >= targetScore) {
+                currentScore = targetScore;
+                clearInterval(finalScoreAnimation);
+            }
+
+            scoreNumber.textContent = currentScore;
+
+        }, 25);
+    }
+
+}, 5000);
+const deviceCompatibility =
+    document.getElementById('deviceCompatibility');
+
+if (deviceCompatibility) {
+    setTimeout(() => {
+        deviceCompatibility.style.display = 'block';
+
+        requestAnimationFrame(() => {
+            deviceCompatibility.style.opacity = '1';
+            deviceCompatibility.style.transform = 'translateY(0)';
+        });
+    }, 5000);
+}
+ }, 3500);
+
+}
+
+function startChallenge() {
+    const button = document.getElementById('challengeButton');
+    const active = document.getElementById('challengeActive');
+    const timer = document.getElementById('challengeTimer');
+    const batteryPercent = document.getElementById('challengeBatteryPercent');
+    const batteryFill = document.getElementById('challengeBatteryFill');
+
+    if (!button || !active || !timer) return;
+
+    button.textContent = '🟢 Челлендж активен';
+    button.style.background = 'rgba(82, 199, 90, 0.22)';
+    button.style.color = '#52c75a';
+
+    active.style.display = 'block';
+
+    let remaining = 4 * 60 * 60;
+    const totalTime = 4 * 60 * 60;
+
+    clearInterval(window.challengeTimerInterval);
+
+    function updateTimer() {
+
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = remaining % 60;
+
+        timer.textContent =
+            `${String(hours).padStart(2, '0')}:` +
+            `${String(minutes).padStart(2, '0')}:` +
+            `${String(seconds).padStart(2, '0')}`;
+
+        /* ===== ЖИВОЙ ЗАРЯД ===== */
+
+        const progress = 1 - (remaining / totalTime);
+
+        const currentBattery = 96 - (46 * progress);
+
+        if (batteryPercent) {
+            batteryPercent.textContent =
+                `${currentBattery.toFixed(1)}%`;
+        }
+
+        if (batteryFill) {
+            batteryFill.style.width =
+                `${currentBattery}%`;
+        }
+
+        /* ===== ЗАВЕРШЕНИЕ ===== */
+
+        if (remaining <= 0) {
+            clearInterval(window.challengeTimerInterval);
+
+            if (batteryPercent) {
+                batteryPercent.textContent = '50%';
+            }
+
+            if (batteryFill) {
+                batteryFill.style.width = '50%';
+            }
+
+            button.textContent = '🏆 Челлендж завершён';
+
+            active.textContent =
+                '🏆 Отлично! AI завершил Battery Challenge';
+
+            return;
+        }
+
+        remaining--;
+    }
+
+    updateTimer();
+
+    window.challengeTimerInterval =
+        setInterval(updateTimer, 1000);
+}
+</script>
+<script>
+function setPersonalMode(mode, button) {
+
+    document.querySelectorAll('.personal-option').forEach(option => {
+        option.classList.remove('active');
+    });
+
+    button.classList.add('active');
+
+    const status = document.getElementById('personalStatus');
+    const impact = document.getElementById('personalImpact');
+
+    if (!status) return;
+
+    const impactText = impact
+        ? impact.querySelector('b')
+        : null;
+
+    if (mode === 'balance') {
+        status.textContent =
+            '⚡ AI использует сбалансированный режим';
+
+        if (impactText) {
+            impactText.textContent = '⚡ Баланс';
+        }
+    }
+
+    if (mode === 'gaming') {
+        status.textContent =
+            '🎮 AI настроил режим максимальной производительности';
+
+        if (impactText) {
+            impactText.textContent =
+                '🚀 Производительность +30%';
+        }
+    }
+
+    if (mode === 'saving') {
+        status.textContent =
+            '🔋 AI активировал максимальную экономию энергии';
+
+        if (impactText) {
+            impactText.textContent =
+                '🔋 Автономность +25%';
+        }
+    }
+}
+function runAutoOptimization() {
+
+    const steps = [
+        document.getElementById('autoStep1'),
+        document.getElementById('autoStep2'),
+        document.getElementById('autoStep3'),
+        document.getElementById('autoStep4')
+    ];
+
+    const result = document.getElementById('autoResult');
+    const button = document.getElementById('autoButton');
+
+    if (!steps.length || !result || !button) return;
+
+    clearTimeout(window.autoOptimizationTimeout);
+
+    steps.forEach(step => {
+        if (step) {
+            step.classList.remove('active', 'done');
+
+            const check = step.querySelector('b');
+            if (check) {
+                check.textContent = '○';
+            }
+        }
+    });
+
+    result.style.display = 'none';
+
+    button.disabled = true;
+    button.textContent = '🤖 AI оптимизирует...';
+
+    let index = 0;
+
+    function runStep() {
+
+        if (index >= steps.length) {
+
+            result.style.display = 'flex';
+
+            button.disabled = false;
+            button.textContent = '✅ Оптимизация завершена';
+
+            return;
+        }
+
+        const step = steps[index];
+        const check = step ? step.querySelector('b') : null;
+
+        if (step) {
+            step.classList.add('active');
+        }
+
+        window.autoOptimizationTimeout = setTimeout(() => {
+
+            if (step) {
+                step.classList.remove('active');
+                step.classList.add('done');
+            }
+
+            if (check) {
+                check.textContent = '✓';
+            }
+
+            index++;
+            runStep();
+
+        }, 900);
+    }
+
+    runStep();
+}
+function shareBatteryReport() {
+
+    const reportText =
+`🔋 Battery AI Report
+
+📱 iPhone 17 Pro
+🧠 AI Score: 94/100
+🔋 Battery Health: 96%
+🌡️ Temperature: 28°C
+⚡ Potential Saving: +1h 18m
+
+🟢 Battery optimized`;
+
+    if (navigator.share) {
+
+        navigator.share({
+            title: 'Battery AI Report',
+            text: reportText
+        }).catch(() => {});
+
+    } else {
+
+        navigator.clipboard.writeText(reportText);
+
+        alert('📋 Отчёт скопирован в буфер обмена');
+    }
+}
+</script>
+</body>
+</html>
